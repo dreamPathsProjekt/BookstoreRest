@@ -3,6 +3,7 @@ package com.readlearncode.dukesbookshop.rest;
 
 import com.readlearncode.dukesbookshop.domain.Author;
 import com.readlearncode.dukesbookshop.infrastructure.AuthorRepository;
+import com.readlearncode.dukesbookshop.infrastructure.exceptions.AuthorIdNotRecognizedException;
 import java.util.List;
 import java.util.Optional;
 import javax.ejb.EJB;
@@ -38,12 +39,12 @@ public class AuthorResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    public Response getAuthor(final @PathParam("id") String id) {
+    public Response getAuthor(final @PathParam("id") String id) throws AuthorIdNotRecognizedException {
         Optional<Author>  author = authorRepository.getById(id);
         
         if(author.isPresent()) {
            return Response.ok(author.get()).build(); 
         }
-        return Response.noContent().build();
+        throw new AuthorIdNotRecognizedException();
     }
 }

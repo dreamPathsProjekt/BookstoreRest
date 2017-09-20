@@ -4,7 +4,10 @@ import com.readlearncode.dukesbookshop.domain.Author;
 import com.readlearncode.dukesbookshop.domain.Book;
 import com.readlearncode.dukesbookshop.domain.LinkResource;
 import com.readlearncode.dukesbookshop.infrastructure.BookRepository;
+import com.readlearncode.dukesbookshop.infrastructure.exceptions.AuthorsNotFoundException;
+import com.readlearncode.dukesbookshop.infrastructure.exceptions.BookNotUpdatedException;
 import com.readlearncode.dukesbookshop.infrastructure.exceptions.ISBNNotFoundException;
+import com.readlearncode.dukesbookshop.infrastructure.exceptions.NoBooksFoundException;
 import java.util.List;
 import java.util.Optional;
 import javax.ejb.EJB;
@@ -41,13 +44,17 @@ public class BookResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllBooks() {
+    public Response getAllBooks() throws NoBooksFoundException {
 
         List<Book> books = bookRepository.getAll();
-        GenericEntity<List<Book>> bookWrapper = new GenericEntity<List<Book>>(books) {
-        };
+        if (!books.isEmpty()) {
+            GenericEntity<List<Book>> bookWrapper = new GenericEntity<List<Book>>(books) {
+            };
 
-        return Response.status(Response.Status.OK).entity(bookWrapper).build();  //also Response.ok(bookWrapper).build()
+            return Response.status(Response.Status.OK).entity(bookWrapper).build();  //also Response.ok(bookWrapper).build()
+        }
+        
+        throw new NoBooksFoundException();
     }
 
     @POST
@@ -89,7 +96,7 @@ public class BookResource {
             //Add linkResources to book object(JSON) we pass on the resource
             book.get().addLinkResource(selfLink);
             book.get().addLinkResource(deleteLink);
-            
+
             //Also add links to the Http Header
             return Response.ok(book.get()).links(self, delete).build();
         }
@@ -100,26 +107,29 @@ public class BookResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("{isbn: \\d{9}[\\d|X]$}")
-    public Response updateBook(final @PathParam("isbn") String isbn, final Book book) {
+    public Response updateBook(final @PathParam("isbn") String isbn, final Book book) throws BookNotUpdatedException, ISBNNotFoundException {
         Optional<Book> bookToUpdate = bookRepository.getByIsbn(isbn);
 
         if (bookToUpdate.isPresent() && bookToUpdate.get().getId().equals(book.getId())) {
             Book persistedBook = bookRepository.saveBook(book);
             return Response.ok(persistedBook).build();
         }
-        return Response.notModified().build();
+        throw new BookNotUpdatedException();
 
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{isbn: \\d{9}[\\d|X]$}/authors")
-    public Response getAuthorsForBook(final @PathParam("isbn") String isbn) {
+    public Response getAuthorsForBook(final @PathParam("isbn") String isbn) throws AuthorsNotFoundException, ISBNNotFoundException {
         List<Author> authors = bookRepository.getByIsbn(isbn).get().getAuthors();
-        GenericEntity<List<Author>> authorsWrapper = new GenericEntity<List<Author>>(authors) {
-        };
+        if (!authors.isEmpty()) {
+            GenericEntity<List<Author>> authorsWrapper = new GenericEntity<List<Author>>(authors) {
+            };
+            return Response.ok(authorsWrapper).build();
+        }
+        throw new AuthorsNotFoundException();
 
-        return Response.ok(authorsWrapper).build();
     }
 
     @DELETE
