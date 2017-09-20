@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -60,7 +61,7 @@ public class BookResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response saveBook(final Book book) {
+    public Response saveBook(@Valid final Book book) { //Validate input at the create or update method based on validation constraints on domain object.
 
         Book persistedBook = bookRepository.saveBook(book);
         return Response.ok(persistedBook).build(); //We should use Response.created(URI) for 201 Headers on Create/POST

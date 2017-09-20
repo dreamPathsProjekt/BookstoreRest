@@ -5,6 +5,11 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Past;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -14,13 +19,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement //JAXB type works for Json too.
 public class Book extends Hypermedia implements Serializable{
 
-    private String id;
+    @Size(min = 10,max = 10)
+    private String id;    
+    @Size(min = 5)
     private String title;
+    @Size(min = 20)
     private String description;
+    @Size(min = 1) //size refers to # of authors (array.length()>=1) here.
     private List<Author> authors;
+    @DecimalMin(value = "0.00")
     private Float price;
+    @NotNull
     private String imageFileName;
+    @Pattern(regexp = "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)*\\/?$") //format link
     private String link;
+    @Past //Published date should be in the past
     private Date published;
 
     public Book() {
