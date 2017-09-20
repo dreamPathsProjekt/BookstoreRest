@@ -49,6 +49,33 @@ public class BookResource {
 
         List<Book> books = bookRepository.getAll();
         if (!books.isEmpty()) {
+            
+            //Refactor: Extract hypermedia logic into separate method.
+            for(Book book:books) {
+                Link self = Link.fromUri(uriInfo.getBaseUriBuilder()
+                    .path(getClass()) //Resource class
+                    .path(getClass(), "getBookByIsbn") //Resource method
+                    .build(book.getId())) //Pass Isbn to link
+                    .rel("self")
+                    .type("GET")
+                    .build();
+
+                Link delete = Link.fromUri(uriInfo.getBaseUriBuilder()
+                    .path(getClass()) //Resource class
+                    .path(getClass(), "deleteBook") //Resource method
+                    .build(book.getId())) //Pass Isbn to link
+                    .rel("delete")
+                    .type("DELETE")
+                    .build();
+
+                LinkResource selfLink = new LinkResource(self);
+                LinkResource deleteLink = new LinkResource(delete);
+
+                //Add linkResources to book object(JSON) we pass on the resource
+                book.addLinkResource(selfLink);
+                book.addLinkResource(deleteLink);
+            }
+            
             GenericEntity<List<Book>> bookWrapper = new GenericEntity<List<Book>>(books) {
             };
 
@@ -138,7 +165,7 @@ public class BookResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteBook(final @PathParam("isbn") String isbn) throws ISBNNotFoundException {
         return Response
-                .ok(bookRepository.deleteBook(isbn).orElseThrow(ISBNNotFoundException::new))
+                .ok(bookRepository.deleteBook(isbn).orElseThrow(ISBNNotFoundException::new)) //orElseThrow/orElse are methods only available on Optional.class
                 .build();
     }
 }
