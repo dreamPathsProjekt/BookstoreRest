@@ -33,21 +33,30 @@ import java.util.concurrent.TimeoutException;
 @ApplicationScoped
 public class BookServiceImpl implements BookService {
 
-    private static final String API_URL = "http://localhost:8081/rest-server";
+    private static final String API_URL = "http://localhost:8081/rest-server"; //target URIs for the client
     private static final String BOOKS_ENDPOINT = API_URL + "/api/books";
 
-    private List<Book> cachedBooks = new ArrayList<>();
+    private List<Book> cachedBooks = new ArrayList<>(); //stores results
 
     private Client client;
 
     @PostConstruct
     public void initialise() {
-        client = ClientBuilder.newClient();
+        //initialize consumer client
+        client = ClientBuilder.newClient(); 
     }
 
     @Override
     public List<Book> getBooks() {
-        return null;
+        //bind target URI to client
+        WebTarget target = client.target(BOOKS_ENDPOINT);
+        
+        //set MediaType and method GET
+        Response response = target.request(MediaType.APPLICATION_JSON).get();
+        
+        //response obj encapsulates a List<Book>.
+        cachedBooks = response.readEntity(new GenericType<ArrayList<Book>>(){});
+        return cachedBooks;
     }
 
     @PreDestroy
