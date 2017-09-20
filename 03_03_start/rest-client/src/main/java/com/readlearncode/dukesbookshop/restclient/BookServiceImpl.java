@@ -98,9 +98,21 @@ public class BookServiceImpl implements BookService {
         return null;
     }
 
+    //implement method to consume the "delete" HATEOAS endpoint.
     @Override
     public void deleteBook(String isbn) {
 
+        for(Book book:cachedBooks) {
+            if(book.getId().equals(isbn)) {
+                for(LinkResource linkResource:book.getLinks()) {
+                    if(linkResource.getRel().equals("delete")) {
+                        String uri = linkResource.getUri();
+                        client.target(uri).request(MediaType.APPLICATION_JSON).delete();
+                        break; //No need to continue if isbn matches.
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -110,12 +122,37 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<LinkResource> extractLinks(JsonArray linkArray) {
-        return null;
+        
+        List<LinkResource> links = new ArrayList<>();
+        
+        for(int j=0; j<linkArray.size(); j++) {
+            JsonObject jsonObject = linkArray.getJsonObject(j);
+            String rel = jsonObject.getString("rel", "");
+            String type = jsonObject.getString("type", "");
+            String uri = jsonObject.getString("uri", "");
+            
+            links.add(new LinkResource(rel, type, uri));
+        }
+        
+        return Collections.unmodifiableList(links);
     }
     
     @Override
     public List<Author> extractAuthors(JsonArray authorArray) {
-        return null;
+
+        List<Author> authors = new ArrayList<>();
+
+        for (int j = 0; j < authorArray.size(); j++) {
+            JsonObject jObject = authorArray.getJsonObject(j);
+            String id = jObject.getString("id", "");
+            String firstName = jObject.getString("firstName", "");
+            String lastName = jObject.getString("lastName", "");
+            String blogURL = jObject.getString("blogURL", "");
+
+            authors.add(new Author(id, firstName, lastName, blogURL));
+        }
+
+        return Collections.unmodifiableList(authors);
     }
 
 
