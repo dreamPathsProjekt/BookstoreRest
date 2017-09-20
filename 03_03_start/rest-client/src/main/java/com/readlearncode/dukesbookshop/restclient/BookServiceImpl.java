@@ -52,11 +52,39 @@ public class BookServiceImpl implements BookService {
         WebTarget target = client.target(BOOKS_ENDPOINT);
         
         //set MediaType and method GET
-        Response response = target.request(MediaType.APPLICATION_JSON).get();
-        
+        Response response = target.request(MediaType.APPLICATION_JSON).get(); 
+
+        /*Code to return to Java Objects
+        ################################
         //response obj encapsulates a List<Book>.
         cachedBooks = response.readEntity(new GenericType<ArrayList<Book>>(){});
-        return cachedBooks;
+        
+        return Collections.unmodifiableList(cachedBooks); //make the list immutable
+        */
+        
+        cachedBooks.clear();
+        JsonArray jsonArray = response.readEntity(JsonArray.class); //de-serialize List into JsonArray format.
+        
+        for(int i=0; i<jsonArray.size(); i++) {
+            JsonObject bookJson = jsonArray.getJsonObject(i);
+            List<LinkResource> hypermedia = extractLinks(bookJson.getJsonArray("links"));
+            List<Author> authors = extractAuthors(bookJson.getJsonArray("authors"));
+            
+            Book book = new BookBuilder()
+                    .setId(bookJson.getString("id"))
+                    .setTitle(bookJson.getString("title"))
+                    .setDescription(bookJson.getString("description"))
+                    .setPrice((float) bookJson.getJsonNumber("price").doubleValue())
+                    .setImageFileName(bookJson.getString("imageFileName"))
+                    .setAuthors(authors)
+                    .setPublished(bookJson.getString("published"))
+                    .setLink(bookJson.getString("link"))
+                    .setHyperlinks(hypermedia)
+                    .createBook();
+            
+            cachedBooks.add(book);
+        }
+        return Collections.unmodifiableList(cachedBooks);
     }
 
     @PreDestroy
@@ -80,6 +108,11 @@ public class BookServiceImpl implements BookService {
         return null;
     }
 
+    @Override
+    public List<LinkResource> extractLinks(JsonArray linkArray) {
+        return null;
+    }
+    
     @Override
     public List<Author> extractAuthors(JsonArray authorArray) {
         return null;

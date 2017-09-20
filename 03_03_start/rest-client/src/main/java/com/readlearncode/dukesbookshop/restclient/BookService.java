@@ -2,6 +2,7 @@ package com.readlearncode.dukesbookshop.restclient;
 
 import com.readlearncode.dukesbookshop.domain.Author;
 import com.readlearncode.dukesbookshop.domain.Book;
+import com.readlearncode.dukesbookshop.domain.LinkResource;
 
 import javax.json.JsonArray;
 import java.util.List;
@@ -17,5 +18,6 @@ public interface BookService {
      Book getBook(String id);
      void deleteBook(String isbn);
      Book saveBook(Book book);
+     List<LinkResource> extractLinks(JsonArray linkArray);
      List<Author> extractAuthors(JsonArray authorArray);
 }
