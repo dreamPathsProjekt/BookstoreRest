@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author i.dritsas
  */
 @XmlRootElement
-public class Author implements Serializable{
+public class Author extends Hypermedia implements Serializable{
     
     private String id;
     private String firstName;

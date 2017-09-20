@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author i.dritsas
  */
 @XmlRootElement //JAXB type works for Json too.
-public class Book implements Serializable{
+public class Book extends Hypermedia implements Serializable{
 
     private String id;
     private String title;
